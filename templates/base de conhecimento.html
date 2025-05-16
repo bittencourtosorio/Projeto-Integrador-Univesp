@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base de Conhecimento</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section-title { font-weight: bold; margin: 20px 0 10px; }
+        select, textarea, input { width: 100%; padding: 8px; margin-bottom: 10px; }
+        textarea { height: 100px; resize: vertical; }
+        button { padding: 10px 15px; background-color: #007BFF; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #007BFF; }
+        .btn-sair { background-color: #f44336; }
+        .btn-sair:hover { background-color: #d32f2f; }
+        .resultado-item { background-color: #f9f9f9; padding: 15px; margin-bottom: 10px; border-left: 4px solid #007BFF; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Base de Conhecimento para a manutenção da Empresa "Nome da Empresa"</h1>
+
+        <!-- Seção de Registro de Defeitos -->
+        <div class="section-title">Registrar Novo Defeito</div>
+
+        <!-- Campo para selecionar a máquina -->
+        <select id="maquina">
+            <option value="" disabled selected>Carregando máquinas...</option>
+        </select>
+
+        <!-- Campo para digitar o defeito -->
+        <textarea id="defeito" placeholder="Descreva o defeito encontrado (máximo 1000 caracteres)" maxlength="1000"></textarea>
+
+        <!-- Campo para digitar a solução -->
+        <textarea id="solucao" placeholder="Descreva a solução aplicada (máximo 1000 caracteres)" maxlength="1000"></textarea>
+
+        <!-- Campo para digitar a causa -->
+        <textarea id="causa" placeholder="Descreva a causa raiz do problema (máximo 1000 caracteres)" maxlength="1000"></textarea>
+
+        <button onclick="registrarDefeito()">Registrar Defeito</button>
+
+        <!-- Seção de Pesquisa -->
+        <div class="section-title">Pesquisar Defeitos</div>
+
+        <!-- Campo para pesquisar defeitos anteriores -->
+        <input type="text" id="pesquisa" placeholder="Digite um termo para buscar (máximo 100 caracteres)" maxlength="100">
+        <button onclick="pesquisarDefeito()">Buscar</button>
+
+        <!-- Botão para sair -->
+        <button class="btn-sair" onclick="window.close()">Sair</button>
+
+        <!-- Área para exibir os resultados -->
+        <div id="resultados"></div>
+    </div>
+
+    <script>
+        // URL base da API - ajuste conforme necessário
+        const API_BASE_URL = 'http://localhost:5000/api';
+
+        // Função para carregar máquinas do backend
+        async function carregarMaquinas() {
+            const selectMaquina = document.getElementById("maquina");
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/maquinas`);
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar máquinas');
+                }
+                const maquinas = await response.json();
+
+                selectMaquina.innerHTML = '<option value="" disabled selected>Selecione a máquina</option>';
+
+                maquinas.forEach(maquina => {
+                    const option = document.createElement("option");
+                    option.value = maquina.maquina;
+                    option.textContent = maquina.maquina;
+                    selectMaquina.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar máquinas:", error);
+                selectMaquina.innerHTML = '<option value="" disabled selected>Erro ao carregar máquinas</option>';
+            }
+        }
+
+        // Função para registrar um novo defeito
+        async function registrarDefeito() {
+            const maquina = document.getElementById("maquina").value;
+            const defeito = document.getElementById("defeito").value.trim();
+            const solucao = document.getElementById("solucao").value.trim();
+            const causa = document.getElementById("causa").value.trim();
+
+            if (!maquina) {
+                alert("Por favor, selecione uma máquina.");
+                return;
+            }
+            if (defeito === "") {
+                alert("Por favor, descreva o defeito encontrado.");
+                return;
+            }
+            if (solucao === "") {
+                alert("Por favor, descreva a solução aplicada.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/defeitos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        maquina,
+                        defeito,
+                        solucao,
+                        causa
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Erro ao registrar defeito');
+                }
+
+                // Limpa os campos
+                document.getElementById("defeito").value = "";
+                document.getElementById("solucao").value = "";
+                document.getElementById("causa").value = "";
+                document.getElementById("maquina").selectedIndex = 0;
+
+                alert("Defeito registrado com sucesso!");
+            } catch (error) {
+                console.error("Erro:", error);
+                alert(`Erro ao registrar defeito: ${error.message}`);
+            }
+        }
+
+        // Função para pesquisar defeitos (implementação básica)
+        async function pesquisarDefeito() {
+            const termo = document.getElementById("pesquisa").value.toLowerCase().trim();
+            const resultados = document.getElementById("resultados");
+            resultados.innerHTML = "";
+
+            if (termo === "") {
+                resultados.innerHTML = "<p>Digite um termo para pesquisar.</p>";
+                return;
+            }
+
+            // Implemente aqui a busca no backend se necessário
+            // Por enquanto, apenas um placeholder
+            resultados.innerHTML = "<p>Funcionalidade de pesquisa será implementada no backend.</p>";
+        }
+
+        // Carrega as máquinas quando a página é aberta
+        document.addEventListener("DOMContentLoaded", carregarMaquinas);
+    </script>
+</body>
+</html>
