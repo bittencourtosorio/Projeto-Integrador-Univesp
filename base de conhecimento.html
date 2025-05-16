@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base de Conhecimento da Empresa Nome da empresa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, textarea, button, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 12px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #resultados {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .resultado-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #007BFF;
+        }
+        .btn-sair {
+            background-color: #dc3545;
+            margin-top: 20px;
+        }
+        .btn-sair:hover {
+            background-color: #c82333;
+        }
+        .section-title {
+            text-align: left;
+            margin: 20px 0 5px 0;
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Base de Conhecimento para a manutenção da Empresa "Nome da Empresa"</h1>
+        
+        <!-- Seção de Registro de Defeitos -->
+        <div class="section-title">Registrar Novo Defeito</div>
+        
+        <!-- Campo para selecionar a máquina -->
+        <select id="maquina">
+            <option value="" disabled selected>Selecione a máquina</option>
+            <option value="Máquina 1">Máquina 1</option>
+            <option value="Máquina 2">Máquina 2</option>
+            <option value="Máquina 3">Máquina 3</option>
+            <option value="Máquina 4">Máquina 4</option>
+            <option value="Máquina 5">Máquina 5</option>
+        </select>
+        
+        <!-- Campo para digitar o defeito -->
+        <textarea id="defeito" placeholder="Descreva o defeito encontrado (máximo 1000 caracteres)" maxlength="1000"></textarea>
+        
+        <!-- Campo para digitar a solução -->
+        <textarea id="solucao" placeholder="Descreva a solução aplicada (máximo 1000 caracteres)" maxlength="1000"></textarea>
+        
+        <!-- Campo para digitar a causa -->
+        <textarea id="causa" placeholder="Descreva a causa raiz do problema (máximo 1000 caracteres)" maxlength="1000"></textarea>
+        
+        <button onclick="registrarDefeito()">Registrar Defeito</button>
+        
+        <!-- Seção de Pesquisa -->
+        <div class="section-title">Pesquisar Defeitos</div>
+        
+        <!-- Campo para pesquisar defeitos anteriores -->
+        <input type="text" id="pesquisa" placeholder="Digite um termo para buscar (máximo 100 caracteres)" maxlength="100">
+        <button onclick="pesquisarDefeito()">Buscar</button>
+        
+        <!-- Botão para sair -->
+        <button class="btn-sair" onclick="window.close()">Sair</button>
+        
+        <!-- Área para exibir os resultados -->
+        <div id="resultados"></div>
+    </div>
+
+    <script>
+        // Carrega a base do localStorage ou inicializa vazia
+        let baseConhecimento = JSON.parse(localStorage.getItem('baseConhecimento')) || [];
+
+        // Função para salvar no localStorage
+        function salvarBase() {
+            localStorage.setItem('baseConhecimento', JSON.stringify(baseConhecimento));
+        }
+
+        // Função para escapar HTML (corrigida)
+        function escapeHTML(str) {
+            return str.replace(/[&<>"']/g, match => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[match]));
+        }
+
+        // Função para registrar um novo defeito
+        function registrarDefeito() {
+            let maquina = document.getElementById("maquina").value;
+            let defeito = document.getElementById("defeito").value.trim();
+            let solucao = document.getElementById("solucao").value.trim();
+            let causa = document.getElementById("causa").value.trim();
+            
+            if (!maquina) {
+                alert("Por favor, selecione uma máquina.");
+                return;
+            }
+            if (defeito === "") {
+                alert("Por favor, descreva o defeito encontrado.");
+                return;
+            }
+            if (solucao === "") {
+                alert("Por favor, descreva a solução aplicada.");
+                return;
+            }
+
+            let registro = {
+                maquina: maquina,
+                defeito: defeito,
+                solucao: solucao,
+                causa: causa,
+                data: new Date().toLocaleString()
+            };
+            
+            baseConhecimento.push(registro);
+            salvarBase();
+            
+            // Limpa os campos
+            document.getElementById("defeito").value = "";
+            document.getElementById("solucao").value = "";
+            document.getElementById("causa").value = "";
+            document.getElementById("maquina").selectedIndex = 0;
+            
+            alert("Defeito registrado com sucesso!");
+        }
+
+        // Função para pesquisar defeitos
+        function pesquisarDefeito() {
+            let termo = document.getElementById("pesquisa").value.toLowerCase().trim();
+            let resultados = document.getElementById("resultados");
+            resultados.innerHTML = "";
+
+            if (termo === "") {
+                resultados.innerHTML = "<p>Digite um termo para pesquisar.</p>";
+                return;
+            }
+
+            let encontrados = baseConhecimento.filter(item => 
+                item.maquina.toLowerCase().includes(termo) || 
+                item.defeito.toLowerCase().includes(termo) ||
+                item.solucao.toLowerCase().includes(termo) ||
+                (item.causa && item.causa.toLowerCase().includes(termo))
+            );
+
+            if (encontrados.length > 0) {
+                encontrados.forEach(item => {
+                    resultados.innerHTML += `
+                        <div class="resultado-item">
+                            <strong>Máquina:</strong> ${escapeHTML(item.maquina)}<br>
+                            <strong>Data:</strong> ${escapeHTML(item.data)}<br>
+                            <strong>Defeito:</strong> ${escapeHTML(item.defeito)}<br>
+                            <strong>Solução:</strong> ${escapeHTML(item.solucao)}<br>
+                            ${item.causa ? `<strong>Causa:</strong> ${escapeHTML(item.causa)}<br>` : ''}
+                        </div>`;
+                });
+            } else {
+                resultados.innerHTML = "<p>Nenhum defeito encontrado.</p>";
+            }
+        }
+    </script>
+</body>
+</html>
